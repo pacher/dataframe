@@ -2,6 +2,7 @@ package org.jetbrains.kotlinx.dataframe.api
 
 import org.jetbrains.kotlinx.dataframe.AnyBaseCol
 import org.jetbrains.kotlinx.dataframe.AnyCol
+import org.jetbrains.kotlinx.dataframe.AnyFrame
 import org.jetbrains.kotlinx.dataframe.ColumnsContainer
 import org.jetbrains.kotlinx.dataframe.ColumnsSelector
 import org.jetbrains.kotlinx.dataframe.DataColumn
@@ -60,6 +61,15 @@ public fun <T, C> ReplaceClause<T, C>.with(transform: ColumnsContainer<T>.(DataC
     val toInsert = removeResult.removedColumns.map {
         val newCol = transform(df, it.data.column as DataColumn<C>)
         ColumnToInsert(it.pathFromRoot().dropLast(1) + newCol.name, newCol, it)
+    }
+    return removeResult.df.insertImpl(toInsert)
+}
+
+public fun <T, C> ReplaceClause<T, C>.withColumnsFrom(transform: ColumnsContainer<T>.(DataColumn<C>) -> AnyFrame): DataFrame<T> {
+    val removeResult = df.removeImpl(columns = columns)
+    val toInsert = removeResult.removedColumns.flatMap {
+        val newGroup = transform(df, it.data.column as DataColumn<C>)
+        newGroup.columns().map { newCol -> ColumnToInsert(it.pathFromRoot().dropLast(1) + newCol.name, newCol, it) }
     }
     return removeResult.df.insertImpl(toInsert)
 }

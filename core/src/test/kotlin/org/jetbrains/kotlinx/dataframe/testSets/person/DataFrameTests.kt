@@ -18,6 +18,7 @@ import org.jetbrains.kotlinx.dataframe.api.ParserOptions
 import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.addAll
 import org.jetbrains.kotlinx.dataframe.api.addId
+import org.jetbrains.kotlinx.dataframe.api.after
 import org.jetbrains.kotlinx.dataframe.api.all
 import org.jetbrains.kotlinx.dataframe.api.allNulls
 import org.jetbrains.kotlinx.dataframe.api.append
@@ -134,6 +135,7 @@ import org.jetbrains.kotlinx.dataframe.api.times
 import org.jetbrains.kotlinx.dataframe.api.to
 import org.jetbrains.kotlinx.dataframe.api.toColumn
 import org.jetbrains.kotlinx.dataframe.api.toColumnAccessor
+import org.jetbrains.kotlinx.dataframe.api.toColumnGroup
 import org.jetbrains.kotlinx.dataframe.api.toColumnOf
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame
 import org.jetbrains.kotlinx.dataframe.api.toDouble
@@ -153,6 +155,7 @@ import org.jetbrains.kotlinx.dataframe.api.values
 import org.jetbrains.kotlinx.dataframe.api.valuesNotNull
 import org.jetbrains.kotlinx.dataframe.api.where
 import org.jetbrains.kotlinx.dataframe.api.with
+import org.jetbrains.kotlinx.dataframe.api.withColumnsFrom
 import org.jetbrains.kotlinx.dataframe.api.withNull
 import org.jetbrains.kotlinx.dataframe.api.withValue
 import org.jetbrains.kotlinx.dataframe.api.withValues
@@ -1595,6 +1598,13 @@ class DataFrameTests : BaseTest() {
     fun replace() {
         val res = typed.replace { age }.with(2021 - typed.age)
         val expected = typed.update { age }.with { 2021 - age }
+        res shouldBe expected
+    }
+
+    @Test
+    fun `replace with columns from`() {
+        val res = typed.replace { age }.withColumnsFrom { listOf(age, (2021 - age) named "Year").toColumnGroup("Group") }
+        val expected = typed.add { "Year" from 2021 - age }.move("Year").after(age)
         res shouldBe expected
     }
 
